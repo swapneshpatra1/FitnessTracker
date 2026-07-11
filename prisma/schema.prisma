@@ -1,0 +1,218 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ---------- Auth.js required models ----------
+
+model User {
+  id            String    @id @default(cuid())
+  name          String?
+  email         String?   @unique
+  emailVerified DateTime?
+  image         String?
+
+  accounts         Account[]
+  sessions         Session[]
+  profile          Profile?
+  customExercises  Exercise[]
+  workoutSessions  WorkoutSession[]
+  bodyweightEntries BodyweightEntry[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
+
+// ---------- Domain models ----------
+
+enum Gender {
+  MALE
+  FEMALE
+  OTHER
+  PREFER_NOT_TO_SAY
+}
+
+enum Goal {
+  STRENGTH
+  HYPERTROPHY
+  ENDURANCE
+  WEIGHT_LOSS
+  GENERAL_FITNESS
+  MAINTENANCE
+}
+
+enum WeightUnit {
+  KG
+  LB
+}
+
+// Extensible tagging used on Exercise; Phase 2 muscle-volume analytics groups by this.
+enum MuscleGroup {
+  CHEST
+  BACK
+  SHOULDERS
+  BICEPS
+  TRICEPS
+  FOREARMS
+  QUADS
+  HAMSTRINGS
+  GLUTES
+  CALVES
+  CORE
+  TRAPS
+  FULL_BODY
+  CARDIO
+  OTHER
+}
+
+model Profile {
+  id     String @id @default(cuid())
+  userId String @unique
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  age           Int?
+  gender        Gender?
+  heightCm      Float?
+  weightKg      Float?
+  goal          Goal?
+  preferredUnit WeightUnit @default(KG)
+  timezone      String     @default("UTC")
+
+  weeklyWorkoutGoal Int    @default(4)
+  targetWeightKg    Float?
+
+  // Free-form bucket for future profile fields (injury notes, experience level,
+  // training days/week, etc.) so later additions don't need a migration.
+  metadata Json?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model BodyweightEntry {
+  id     String @id @default(cuid())
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  date   DateTime // calendar date, UTC midnight (one entry per day)
+  weight Float
+  unit   WeightUnit @default(KG)
+
+  createdAt DateTime @default(now())
+
+  @@unique([userId, date])
+  @@index([userId, date])
+}
+
+model Exercise {
+  id               String        @id @default(cuid())
+  name             String        @unique
+  primaryMuscle    MuscleGroup
+  secondaryMuscles MuscleGroup[]
+  equipment        String?
+  instructions     String?       @db.Text
+
+  isCustom    Boolean @default(false)
+  createdById String? // null = global/seeded exercise
+  createdBy   User?   @relation(fields: [createdById], references: [id], onDelete: SetNull)
+
+  workoutExercises WorkoutExercise[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([primaryMuscle])
+}
+
+model WorkoutSession {
+  id     String @id @default(cuid())
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  date  DateTime // calendar date of the workout (stored as UTC midnight; displayed in profile.timezone)
+  name  String?
+  notes String?  @db.Text
+
+  exercises WorkoutExercise[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId, date])
+}
+
+model WorkoutExercise {
+  id         String         @id @default(cuid())
+  sessionId  String
+  session    WorkoutSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  exerciseId String
+  exercise   Exercise       @relation(fields: [exerciseId], references: [id])
+
+  order Int     @default(0)
+  notes String?
+
+  sets SetEntry[]
+
+  @@index([sessionId])
+  @@index([exerciseId])
+}
+
+model SetEntry {
+  id                String          @id @default(cuid())
+  workoutExerciseId String
+  workoutExercise   WorkoutExercise @relation(fields: [workoutExerciseId], references: [id], onDelete: Cascade)
+
+  setNumber Int
+  reps      Int
+  weight    Float
+  unit      WeightUnit @default(KG)
+  rpe       Float?
+  isWarmup  Boolean    @default(false)
+  notes     String?
+
+  createdAt DateTime @default(now())
+
+  @@index([workoutExerciseId])
+}
