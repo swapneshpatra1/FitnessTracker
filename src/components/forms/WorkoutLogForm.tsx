@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import { FormProvider, useFieldArray, useForm } from "react-hook-form";
+import { FormProvider, useFieldArray, useForm, type FieldErrors } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
 import {
@@ -29,6 +29,29 @@ import { AddExerciseForm } from "@/components/forms/AddExerciseForm";
 
 type ExerciseOption = { id: string; name: string };
 type ComboboxOption = { value: string; label: string };
+
+function describeValidationError(errors: FieldErrors<WorkoutSessionInput>): string {
+  const exerciseErrors = errors.exercises;
+  if (Array.isArray(exerciseErrors)) {
+    for (let i = 0; i < exerciseErrors.length; i++) {
+      const exerciseError = exerciseErrors[i];
+      if (!exerciseError) continue;
+      if (exerciseError.exerciseId) {
+        return `Exercise ${i + 1}: pick an exercise from the search box before saving.`;
+      }
+      if (exerciseError.sets) {
+        return `Exercise ${i + 1}: check that every set has a weight and reps filled in.`;
+      }
+    }
+  }
+  if (errors.exercises) {
+    return "Add at least one exercise with a selected name and at least one set.";
+  }
+  if (errors.date) {
+    return "Pick a valid date.";
+  }
+  return "Some fields need attention before this can be saved.";
+}
 
 function todayDateInputValue() {
   const now = new Date();
@@ -93,9 +116,14 @@ export function WorkoutLogForm({
     router.refresh();
   }
 
+  function onInvalid(errors: FieldErrors<WorkoutSessionInput>) {
+    console.error("Workout form failed validation", errors);
+    toast.error(describeValidationError(errors));
+  }
+
   return (
     <FormProvider {...methods}>
-      <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+      <form onSubmit={handleSubmit(onSubmit, onInvalid)} className="space-y-6">
         <Card>
           <CardContent className="grid grid-cols-1 gap-4 pt-6 sm:grid-cols-2">
             <div className="space-y-1.5">
