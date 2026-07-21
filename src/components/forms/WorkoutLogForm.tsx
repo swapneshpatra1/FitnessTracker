@@ -26,6 +26,9 @@ import {
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { ExerciseSetRow } from "@/components/forms/ExerciseSetRow";
 import { AddExerciseForm } from "@/components/forms/AddExerciseForm";
+import { WorkoutLoggedAnimation } from "@/components/WorkoutLoggedAnimation";
+
+const LOGGED_ANIMATION_DURATION_MS = 1900;
 
 type ExerciseOption = { id: string; name: string };
 type ComboboxOption = { value: string; label: string };
@@ -72,6 +75,7 @@ export function WorkoutLogForm({
   const router = useRouter();
   const [exerciseList, setExerciseList] = useState(exerciseOptions);
   const [newExerciseRowIndex, setNewExerciseRowIndex] = useState<number | null>(null);
+  const [showLoggedAnimation, setShowLoggedAnimation] = useState(false);
   const exerciseComboboxItems: ComboboxOption[] = useMemo(
     () => exerciseList.map((option) => ({ value: option.id, label: option.name })),
     [exerciseList]
@@ -118,9 +122,18 @@ export function WorkoutLogForm({
       return;
     }
 
-    toast.success(sessionId ? "Workout updated" : "Workout logged");
-    router.push("/history");
-    router.refresh();
+    if (sessionId) {
+      toast.success("Workout updated");
+      router.push("/history");
+      router.refresh();
+      return;
+    }
+
+    setShowLoggedAnimation(true);
+    setTimeout(() => {
+      router.push("/history");
+      router.refresh();
+    }, LOGGED_ANIMATION_DURATION_MS);
   }
 
   function onInvalid(errors: FieldErrors<WorkoutSessionInput>) {
@@ -130,6 +143,7 @@ export function WorkoutLogForm({
 
   return (
     <FormProvider {...methods}>
+      {showLoggedAnimation && <WorkoutLoggedAnimation />}
       <form onSubmit={handleSubmit(onSubmit, onInvalid)} className="space-y-6">
         <Card>
           <CardContent className="grid grid-cols-1 gap-4 pt-6 sm:grid-cols-2">
@@ -223,7 +237,7 @@ export function WorkoutLogForm({
         </Button>
 
         <div className="flex justify-end">
-          <Button type="submit" disabled={formState.isSubmitting || fields.length === 0}>
+          <Button type="submit" disabled={formState.isSubmitting || showLoggedAnimation || fields.length === 0}>
             {sessionId ? "Save changes" : "Log workout"}
           </Button>
         </div>
