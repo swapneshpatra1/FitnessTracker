@@ -27,7 +27,14 @@ export function HistoryList({ sessions }: { sessions: HistorySession[] }) {
   async function handleDelete(id: string) {
     if (!confirm("Delete this workout session? This cannot be undone.")) return;
 
-    const response = await fetch(`/api/sessions/${id}`, { method: "DELETE" });
+    let response: Response;
+    try {
+      response = await fetch(`/api/sessions/${id}`, { method: "DELETE" });
+    } catch (error) {
+      console.error("Network error while deleting session", error);
+      toast.error("Couldn't reach the server — check your connection and try again.");
+      return;
+    }
     if (!response.ok) {
       toast.error("Could not delete session.");
       return;

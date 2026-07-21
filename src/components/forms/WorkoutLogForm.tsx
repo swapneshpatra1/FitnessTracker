@@ -98,11 +98,18 @@ export function WorkoutLogForm({
 
   async function onSubmit(values: WorkoutSessionOutput) {
     const url = sessionId ? `/api/sessions/${sessionId}` : "/api/sessions";
-    const response = await fetch(url, {
-      method: sessionId ? "PATCH" : "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(values),
-    });
+    let response: Response;
+    try {
+      response = await fetch(url, {
+        method: sessionId ? "PATCH" : "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(values),
+      });
+    } catch (error) {
+      console.error("Network error while saving workout", error);
+      toast.error("Couldn't reach the server — check your connection and try again. Your entries are still here.");
+      return;
+    }
 
     if (!response.ok) {
       const body = await response.json().catch(() => null);

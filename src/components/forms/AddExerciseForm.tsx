@@ -37,11 +37,18 @@ export function AddExerciseForm({ onCreated }: { onCreated?: (exercise: CreatedE
   const primaryMuscle = watch("primaryMuscle");
 
   async function onSubmit(values: ExerciseOutput) {
-    const response = await fetch("/api/exercises", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(values),
-    });
+    let response: Response;
+    try {
+      response = await fetch("/api/exercises", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(values),
+      });
+    } catch (error) {
+      console.error("Network error while creating exercise", error);
+      toast.error("Couldn't reach the server — check your connection and try again.");
+      return;
+    }
 
     if (!response.ok) {
       const body = await response.json().catch(() => null);

@@ -37,11 +37,18 @@ export function LogWeightForm({
   });
 
   async function onSubmit(values: BodyweightEntryOutput) {
-    const response = await fetch("/api/bodyweight", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(values),
-    });
+    let response: Response;
+    try {
+      response = await fetch("/api/bodyweight", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(values),
+      });
+    } catch (error) {
+      console.error("Network error while saving weight entry", error);
+      toast.error("Couldn't reach the server — check your connection and try again.");
+      return;
+    }
 
     if (!response.ok) {
       toast.error("Could not save weight entry.");

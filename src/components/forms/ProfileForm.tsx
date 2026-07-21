@@ -60,11 +60,18 @@ export function ProfileForm({ mode, defaultValues }: ProfileFormProps) {
   const preferredUnit = watch("preferredUnit");
 
   async function onSubmit(values: ProfileOutput) {
-    const response = await fetch("/api/profile", {
-      method: mode === "create" ? "POST" : "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(values),
-    });
+    let response: Response;
+    try {
+      response = await fetch("/api/profile", {
+        method: mode === "create" ? "POST" : "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(values),
+      });
+    } catch (error) {
+      console.error("Network error while saving profile", error);
+      toast.error("Couldn't reach the server — check your connection and try again.");
+      return;
+    }
 
     if (!response.ok) {
       toast.error("Something went wrong. Please try again.");
