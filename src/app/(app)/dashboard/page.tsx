@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { requireUserId } from "@/lib/dal";
 import { prisma } from "@/lib/prisma";
-import { workoutStreaks, workoutCountInLastNDays } from "@/lib/calculations/streak";
+import { workoutStreaks, workoutCountThisWeek } from "@/lib/calculations/streak";
 import { computeStrengthScore } from "@/lib/calculations/strengthScore";
 import { hardSetsByMuscle } from "@/lib/calculations/hardSets";
 import { computeTrainingBalance } from "@/lib/calculations/trainingBalance";
@@ -59,7 +59,7 @@ export default async function DashboardPage() {
 
   const dates = sessions.map((s) => s.date);
   const { current: currentStreak, longest: longestStreak } = workoutStreaks(dates);
-  const workoutsThisWeek = workoutCountInLastNDays(dates, 7);
+  const workoutsThisWeek = workoutCountThisWeek(dates);
   const weeklyGoal = profile?.weeklyWorkoutGoal ?? 4;
   const unit = profile?.preferredUnit ?? "KG";
   const unitLabel = unit.toLowerCase();

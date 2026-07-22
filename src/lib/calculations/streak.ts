@@ -9,6 +9,15 @@ function toUtcMidnight(date: Date): Date {
   return new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate()));
 }
 
+/** Monday of the calendar week containing `date` (UTC). */
+function weekStart(date: Date): Date {
+  const d = toUtcMidnight(date);
+  const day = d.getUTCDay();
+  const diffToMonday = day === 0 ? -6 : 1 - day;
+  d.setUTCDate(d.getUTCDate() + diffToMonday);
+  return d;
+}
+
 /**
  * Counts consecutive *workouts* (not consecutive calendar days) as a streak — a
  * gap of up to `maxGapDays` between sessions doesn't break it, since most routines
@@ -51,8 +60,17 @@ export function workoutStreaks(
   return { current, longest };
 }
 
-export function workoutCountInLastNDays(workoutDates: Date[], days: number, today: Date = new Date()): number {
-  const cutoff = new Date(today);
-  cutoff.setUTCDate(cutoff.getUTCDate() - days);
-  return workoutDates.filter((date) => date >= cutoff && date <= today).length;
+/**
+ * Counts workouts within the current calendar week (Monday through today) --
+ * a fixed boundary that resets each Monday, not a rolling N-day window. A
+ * weekly *goal* needs this: "did I hit my target this week" only makes sense
+ * against a week that actually ends and restarts.
+ */
+export function workoutCountThisWeek(workoutDates: Date[], today: Date = new Date()): number {
+  const start = weekStart(today);
+  const end = toUtcMidnight(today);
+  return workoutDates.filter((date) => {
+    const day = toUtcMidnight(date);
+    return day >= start && day <= end;
+  }).length;
 }
