@@ -15,16 +15,15 @@ export function ExerciseSetRow({ exerciseIndex }: { exerciseIndex: number }) {
   return (
     <div className="space-y-2">
       {fields.length > 0 && (
-        <div className="text-muted-foreground grid grid-cols-[2rem_1fr_1fr_1fr_2rem] gap-2 px-1 text-xs">
+        <div className="text-muted-foreground grid grid-cols-[2rem_1fr_1fr_2rem] gap-2 px-1 text-xs">
           <span>#</span>
           <span>Weight</span>
           <span>Reps</span>
-          <span>RPE</span>
           <span />
         </div>
       )}
       {fields.map((field, setIndex) => (
-        <div key={field.id} className="grid grid-cols-[2rem_1fr_1fr_1fr_2rem] items-center gap-2">
+        <div key={field.id} className="grid grid-cols-[2rem_1fr_1fr_2rem] items-center gap-2">
           <span className="text-muted-foreground text-sm">{setIndex + 1}</span>
           <Input
             type="number"
@@ -38,13 +37,6 @@ export function ExerciseSetRow({ exerciseIndex }: { exerciseIndex: number }) {
             placeholder="reps"
             onFocus={(event) => event.currentTarget.select()}
             {...register(`exercises.${exerciseIndex}.sets.${setIndex}.reps`, { valueAsNumber: true })}
-          />
-          <Input
-            type="number"
-            step="0.5"
-            placeholder="1-10"
-            onFocus={(event) => event.currentTarget.select()}
-            {...register(`exercises.${exerciseIndex}.sets.${setIndex}.rpe`, { valueAsNumber: true })}
           />
           <Button
             type="button"
