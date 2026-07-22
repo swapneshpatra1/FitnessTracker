@@ -68,6 +68,7 @@ export function LogWeightForm({
           <Input
             id="weight-date"
             type="date"
+            className="w-px min-w-full"
             defaultValue={todayDateInputValue()}
             onChange={(event) => setValue("date", new Date(event.target.value))}
           />
