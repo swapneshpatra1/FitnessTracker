@@ -51,7 +51,13 @@ export function summarizeBodyweight(entries: BodyweightEntry[], today: Date = ne
   };
 }
 
-export type WeeklyBodyweightPoint = { weekLabel: string; averageWeight: number | null; workoutCount: number };
+export type WeeklyBodyweightPoint = {
+  weekLabel: string;
+  weekOfMonthLabel: string; // "W1", "W2"... sequential within each visible month group
+  monthLabel: string; // e.g. "June"
+  averageWeight: number | null;
+  workoutCount: number;
+};
 
 function weekStart(date: Date): Date {
   const d = new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate()));
@@ -89,9 +95,22 @@ export function weeklyBodyweightSeries(
     if (bucket) bucket.workouts += 1;
   }
 
-  return buckets.map((b) => ({
-    weekLabel: b.start.toLocaleDateString("en-US", { month: "short", day: "numeric", timeZone: "UTC" }),
-    averageWeight: b.weights.length > 0 ? Math.round(average(b.weights)! * 10) / 10 : null,
-    workoutCount: b.workouts,
-  }));
+  // Number weeks sequentially within each visible month group (W1, W2, ...) rather
+  // than by calendar week-of-month, so a rolling window that starts mid-month still
+  // reads cleanly instead of opening on e.g. "W3".
+  let weekOfMonth = 0;
+  let lastMonthKey = "";
+  return buckets.map((b) => {
+    const monthKey = `${b.start.getUTCFullYear()}-${b.start.getUTCMonth()}`;
+    weekOfMonth = monthKey === lastMonthKey ? weekOfMonth + 1 : 1;
+    lastMonthKey = monthKey;
+
+    return {
+      weekLabel: b.start.toLocaleDateString("en-US", { month: "short", day: "numeric", timeZone: "UTC" }),
+      weekOfMonthLabel: `W${weekOfMonth}`,
+      monthLabel: b.start.toLocaleDateString("en-US", { month: "long", timeZone: "UTC" }),
+      averageWeight: b.weights.length > 0 ? Math.round(average(b.weights)! * 10) / 10 : null,
+      workoutCount: b.workouts,
+    };
+  });
 }

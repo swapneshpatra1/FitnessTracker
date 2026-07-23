@@ -1,17 +1,34 @@
 "use client";
 
+import { useMemo } from "react";
 import { Bar, BarChart, CartesianGrid, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import type { WeeklyBodyweightPoint } from "@/lib/calculations/bodyweight";
 
+const AXIS_LEFT_WIDTH = 28;
+const CHART_RIGHT_MARGIN = 16;
+
 export function BodyweightTrendChart({ data, unitLabel }: { data: WeeklyBodyweightPoint[]; unitLabel: string }) {
   const hasWeightData = data.some((d) => d.averageWeight !== null);
+
+  const monthGroups = useMemo(() => {
+    const groups: { monthLabel: string; count: number }[] = [];
+    for (const point of data) {
+      const last = groups[groups.length - 1];
+      if (last && last.monthLabel === point.monthLabel) {
+        last.count += 1;
+      } else {
+        groups.push({ monthLabel: point.monthLabel, count: 1 });
+      }
+    }
+    return groups;
+  }, [data]);
 
   return (
     <div className="space-y-4">
       <div>
         {hasWeightData ? (
           <ResponsiveContainer width="100%" height={200}>
-            <LineChart data={data} margin={{ top: 8, right: 16, bottom: 0, left: 0 }}>
+            <LineChart data={data} margin={{ top: 8, right: CHART_RIGHT_MARGIN, bottom: 0, left: 0 }}>
               <CartesianGrid strokeDasharray="3 3" vertical={false} className="stroke-muted" />
               <XAxis dataKey="weekLabel" tick={{ fontSize: 12 }} />
               <YAxis
@@ -40,14 +57,37 @@ export function BodyweightTrendChart({ data, unitLabel }: { data: WeeklyBodyweig
       </div>
       <div>
         <p className="text-muted-foreground mb-1 text-xs">Workouts per week</p>
-        <ResponsiveContainer width="100%" height={60}>
-          <BarChart data={data} margin={{ top: 0, right: 16, bottom: 0, left: 0 }}>
-            <XAxis dataKey="weekLabel" hide />
-            <YAxis hide domain={[0, "dataMax + 1"]} />
-            <Tooltip />
-            <Bar dataKey="workoutCount" fill="var(--chart-2)" radius={[2, 2, 0, 0]} name="Workouts" />
+        <ResponsiveContainer width="100%" height={200}>
+          <BarChart data={data} margin={{ top: 8, right: CHART_RIGHT_MARGIN, bottom: 0, left: 0 }}>
+            <CartesianGrid strokeDasharray="3 3" vertical={false} className="stroke-muted" />
+            <XAxis dataKey="weekOfMonthLabel" tick={{ fontSize: 11 }} interval={0} />
+            <YAxis
+              width={AXIS_LEFT_WIDTH}
+              tick={{ fontSize: 12 }}
+              allowDecimals={false}
+              domain={[0, "dataMax + 1"]}
+            />
+            <Tooltip
+              labelFormatter={(_, payload) => payload?.[0]?.payload?.weekLabel ?? ""}
+              formatter={(value) => [value, "Workouts"]}
+            />
+            <Bar dataKey="workoutCount" fill="var(--chart-2)" radius={[3, 3, 0, 0]} name="Workouts" />
           </BarChart>
         </ResponsiveContainer>
+        <div
+          className="text-muted-foreground flex text-xs"
+          style={{ paddingLeft: AXIS_LEFT_WIDTH, paddingRight: CHART_RIGHT_MARGIN }}
+        >
+          {monthGroups.map((group, index) => (
+            <span
+              key={`${group.monthLabel}-${index}`}
+              className="border-border truncate border-t pt-1 text-center"
+              style={{ flex: `${group.count} 1 0%` }}
+            >
+              {group.monthLabel}
+            </span>
+          ))}
+        </div>
       </div>
     </div>
   );
