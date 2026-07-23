@@ -18,7 +18,10 @@ export default async function EditWorkoutPage({
         exercises: { orderBy: { order: "asc" }, include: { sets: { orderBy: { setNumber: "asc" } } } },
       },
     }),
-    prisma.exercise.findMany({ orderBy: { name: "asc" }, select: { id: true, name: true, imageUrl: true } }),
+    prisma.exercise.findMany({
+      orderBy: { name: "asc" },
+      select: { id: true, name: true, imageUrl: true, primaryMuscle: true, isCustom: true },
+    }),
   ]);
 
   if (!session) {

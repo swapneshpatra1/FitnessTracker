@@ -15,24 +15,21 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import {
-  Combobox,
-  ComboboxContent,
-  ComboboxEmpty,
-  ComboboxInput,
-  ComboboxItem,
-  ComboboxList,
-} from "@/components/ui/combobox";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { ExerciseSetRow } from "@/components/forms/ExerciseSetRow";
-import { AddExerciseForm } from "@/components/forms/AddExerciseForm";
+import { ExercisePickerDialog, type PickerExercise } from "@/components/forms/ExercisePickerDialog";
 import { WorkoutLoggedAnimation } from "@/components/WorkoutLoggedAnimation";
 import { ExerciseThumbnail } from "@/components/ExerciseThumbnail";
+import type { MuscleGroup } from "@/generated/prisma/client";
 
 const LOGGED_ANIMATION_DURATION_MS = 1900;
 
-type ExerciseOption = { id: string; name: string; imageUrl?: string | null };
-type ComboboxOption = { value: string; label: string; imageUrl?: string | null };
+type ExerciseOption = {
+  id: string;
+  name: string;
+  imageUrl?: string | null;
+  primaryMuscle?: MuscleGroup | null;
+  isCustom?: boolean;
+};
 
 function describeValidationError(errors: FieldErrors<WorkoutSessionInput>): string {
   const exerciseErrors = errors.exercises;
@@ -75,12 +72,9 @@ export function WorkoutLogForm({
 }) {
   const router = useRouter();
   const [exerciseList, setExerciseList] = useState(exerciseOptions);
-  const [newExerciseRowIndex, setNewExerciseRowIndex] = useState<number | null>(null);
+  const [pickerTarget, setPickerTarget] = useState<number | "new" | null>(null);
   const [showLoggedAnimation, setShowLoggedAnimation] = useState(false);
-  const exerciseComboboxItems: ComboboxOption[] = useMemo(
-    () => exerciseList.map((option) => ({ value: option.id, label: option.name, imageUrl: option.imageUrl })),
-    [exerciseList]
-  );
+  const exerciseById = useMemo(() => new Map(exerciseList.map((option) => [option.id, option])), [exerciseList]);
   const methods = useForm<WorkoutSessionInput, unknown, WorkoutSessionOutput>({
     resolver: zodResolver(workoutSessionSchema),
     defaultValues: {
@@ -93,12 +87,22 @@ export function WorkoutLogForm({
   const { control, register, handleSubmit, watch, setValue, formState } = methods;
   const { fields, append, remove } = useFieldArray({ control, name: "exercises" });
 
-  function handleExerciseCreated(exercise: { id: string; name: string }) {
-    setExerciseList((prev) => [...prev, exercise].sort((a, b) => a.name.localeCompare(b.name)));
-    if (newExerciseRowIndex !== null) {
-      setValue(`exercises.${newExerciseRowIndex}.exerciseId`, exercise.id);
+  function applyExerciseSelection(exercise: PickerExercise) {
+    if (pickerTarget === "new") {
+      append({
+        exerciseId: exercise.id,
+        order: fields.length,
+        sets: [{ setNumber: 1, reps: 0, weight: 0, unit: "KG", isWarmup: false }],
+      });
+    } else if (pickerTarget !== null) {
+      setValue(`exercises.${pickerTarget}.exerciseId`, exercise.id);
     }
-    setNewExerciseRowIndex(null);
+    setPickerTarget(null);
+  }
+
+  function handleExerciseCreated(exercise: PickerExercise) {
+    setExerciseList((prev) => [...prev, exercise].sort((a, b) => a.name.localeCompare(b.name)));
+    applyExerciseSelection(exercise);
   }
 
   async function onSubmit(values: WorkoutSessionOutput) {
@@ -181,43 +185,25 @@ export function WorkoutLogForm({
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="space-y-1.5">
-                  <div className="flex items-center justify-between">
-                    <Label>Exercise</Label>
-                    <Dialog
-                      open={newExerciseRowIndex === index}
-                      onOpenChange={(open) => setNewExerciseRowIndex(open ? index : null)}
-                    >
-                      <DialogTrigger render={<Button type="button" variant="link" size="sm" className="h-auto p-0" />}>
-                        + New exercise
-                      </DialogTrigger>
-                      <DialogContent>
-                        <DialogHeader>
-                          <DialogTitle>Add a custom exercise</DialogTitle>
-                        </DialogHeader>
-                        <AddExerciseForm onCreated={handleExerciseCreated} />
-                      </DialogContent>
-                    </Dialog>
-                  </div>
-                  <Combobox
-                    items={exerciseComboboxItems}
-                    value={exerciseComboboxItems.find((option) => option.value === exerciseId) ?? null}
-                    onValueChange={(option) =>
-                      setValue(`exercises.${index}.exerciseId`, (option as ComboboxOption | null)?.value ?? "")
-                    }
+                  <Label>Exercise</Label>
+                  <button
+                    type="button"
+                    onClick={() => setPickerTarget(index)}
+                    className="hover:bg-accent flex w-full items-center gap-3 rounded-md border px-3 py-2 text-left text-sm transition-colors"
                   >
-                    <ComboboxInput placeholder="Search exercises..." className="w-full" />
-                    <ComboboxContent>
-                      <ComboboxEmpty>No exercises found.</ComboboxEmpty>
-                      <ComboboxList>
-                        {(item: ComboboxOption) => (
-                          <ComboboxItem key={item.value} value={item}>
-                            <ExerciseThumbnail imageUrl={item.imageUrl} name={item.label} size={28} />
-                            {item.label}
-                          </ComboboxItem>
-                        )}
-                      </ComboboxList>
-                    </ComboboxContent>
-                  </Combobox>
+                    {exerciseId && exerciseById.get(exerciseId) ? (
+                      <>
+                        <ExerciseThumbnail
+                          imageUrl={exerciseById.get(exerciseId)?.imageUrl}
+                          name={exerciseById.get(exerciseId)?.name ?? ""}
+                          size={32}
+                        />
+                        <span className="truncate">{exerciseById.get(exerciseId)?.name}</span>
+                      </>
+                    ) : (
+                      <span className="text-muted-foreground">Select exercise...</span>
+                    )}
+                  </button>
                 </div>
                 <ExerciseSetRow exerciseIndex={index} />
               </CardContent>
@@ -225,19 +211,19 @@ export function WorkoutLogForm({
           );
         })}
 
-        <Button
-          type="button"
-          variant="outline"
-          onClick={() =>
-            append({
-              exerciseId: "",
-              order: fields.length,
-              sets: [{ setNumber: 1, reps: 0, weight: 0, unit: "KG", isWarmup: false }],
-            })
-          }
-        >
+        <Button type="button" variant="outline" onClick={() => setPickerTarget("new")}>
           Add exercise
         </Button>
+
+        <ExercisePickerDialog
+          open={pickerTarget !== null}
+          onOpenChange={(open) => {
+            if (!open) setPickerTarget(null);
+          }}
+          exercises={exerciseList}
+          onSelect={applyExerciseSelection}
+          onExerciseCreated={handleExerciseCreated}
+        />
 
         <div className="flex justify-end">
           <Button type="submit" disabled={formState.isSubmitting || showLoggedAnimation || fields.length === 0}>
