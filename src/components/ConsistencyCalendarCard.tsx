@@ -7,15 +7,15 @@ import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ConsistencyCalendar } from "@/components/charts/ConsistencyCalendar";
 
 const RANGES = {
-  "13w": { label: "13 weeks", weeks: 13 },
-  "6m": { label: "6 months", weeks: 26 },
-  "1y": { label: "1 year", weeks: 52 },
+  "12w": { label: "12 weeks", weeks: 12 },
+  "6m": { label: "6 months", weeks: 24 },
+  "1y": { label: "1 year", weeks: 48 },
 } as const;
 
 type RangeKey = keyof typeof RANGES;
 
 export function ConsistencyCalendarCard({ workoutDates }: { workoutDates: Date[] }) {
-  const [range, setRange] = useState<RangeKey>("13w");
+  const [range, setRange] = useState<RangeKey>("12w");
 
   return (
     <Card>
