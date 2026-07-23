@@ -61,7 +61,12 @@ export function BodyweightTrendChart({ data, unitLabel }: { data: WeeklyBodyweig
           <ResponsiveContainer width="100%" height={200}>
             <BarChart data={data} margin={{ top: 8, right: CHART_RIGHT_MARGIN, bottom: 0, left: 0 }}>
               <CartesianGrid strokeDasharray="3 3" vertical={false} className="stroke-muted" />
-              <XAxis dataKey="weekOfMonthLabel" tick={{ fontSize: 11 }} interval={0} />
+              <XAxis
+                dataKey="weekLabel"
+                tickFormatter={(_, index) => data[index]?.weekOfMonthLabel ?? ""}
+                tick={{ fontSize: 11 }}
+                interval={0}
+              />
               <YAxis
                 width={AXIS_LEFT_WIDTH}
                 tick={{ fontSize: 12 }}
