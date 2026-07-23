@@ -57,23 +57,39 @@ export function BodyweightTrendChart({ data, unitLabel }: { data: WeeklyBodyweig
       </div>
       <div>
         <p className="text-muted-foreground mb-1 text-xs">Workouts per week</p>
-        <ResponsiveContainer width="100%" height={200}>
-          <BarChart data={data} margin={{ top: 8, right: CHART_RIGHT_MARGIN, bottom: 0, left: 0 }}>
-            <CartesianGrid strokeDasharray="3 3" vertical={false} className="stroke-muted" />
-            <XAxis dataKey="weekOfMonthLabel" tick={{ fontSize: 11 }} interval={0} />
-            <YAxis
-              width={AXIS_LEFT_WIDTH}
-              tick={{ fontSize: 12 }}
-              allowDecimals={false}
-              domain={[0, "dataMax + 1"]}
-            />
-            <Tooltip
-              labelFormatter={(_, payload) => payload?.[0]?.payload?.weekLabel ?? ""}
-              formatter={(value) => [value, "Workouts"]}
-            />
-            <Bar dataKey="workoutCount" fill="var(--chart-2)" radius={[3, 3, 0, 0]} name="Workouts" />
-          </BarChart>
-        </ResponsiveContainer>
+        <div className="relative">
+          <ResponsiveContainer width="100%" height={200}>
+            <BarChart data={data} margin={{ top: 8, right: CHART_RIGHT_MARGIN, bottom: 0, left: 0 }}>
+              <CartesianGrid strokeDasharray="3 3" vertical={false} className="stroke-muted" />
+              <XAxis dataKey="weekOfMonthLabel" tick={{ fontSize: 11 }} interval={0} />
+              <YAxis
+                width={AXIS_LEFT_WIDTH}
+                tick={{ fontSize: 12 }}
+                allowDecimals={false}
+                domain={[0, "dataMax + 1"]}
+              />
+              <Tooltip
+                labelFormatter={(_, payload) => payload?.[0]?.payload?.weekLabel ?? ""}
+                formatter={(value) => [value, "Workouts"]}
+              />
+              <Bar dataKey="workoutCount" fill="var(--chart-2)" radius={[3, 3, 0, 0]} name="Workouts" />
+            </BarChart>
+          </ResponsiveContainer>
+          {/* Month-boundary separators, overlaid to align with the bars above -- Recharts
+              has no clean way to draw a reference line *between* two category bands. */}
+          <div
+            className="pointer-events-none absolute inset-0 flex"
+            style={{ paddingLeft: AXIS_LEFT_WIDTH, paddingRight: CHART_RIGHT_MARGIN, paddingTop: 8, paddingBottom: 28 }}
+          >
+            {data.map((point, index) => (
+              <div
+                key={index}
+                className={index > 0 && point.weekOfMonthLabel === "W1" ? "border-muted-foreground/40 border-l border-dotted" : ""}
+                style={{ flex: "1 1 0%" }}
+              />
+            ))}
+          </div>
+        </div>
         <div
           className="text-muted-foreground flex text-xs"
           style={{ paddingLeft: AXIS_LEFT_WIDTH, paddingRight: CHART_RIGHT_MARGIN }}
