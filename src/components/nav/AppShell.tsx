@@ -29,7 +29,7 @@ export function AppShell({
     <div className="bg-muted/30 flex min-h-full flex-1 flex-col">
       <header className="bg-background/80 sticky top-0 z-40 border-b backdrop-blur-sm">
         <div className="mx-auto flex max-w-6xl items-center justify-between gap-3 px-3 py-3 sm:px-4">
-          <nav className="flex items-center gap-0.5 overflow-x-auto sm:gap-1">
+          <nav className="flex flex-1 items-center justify-between overflow-x-auto">
             {NAV_LINKS.map((link) => {
               const isActive = pathname === link.href || pathname.startsWith(`${link.href}/`);
               return (
