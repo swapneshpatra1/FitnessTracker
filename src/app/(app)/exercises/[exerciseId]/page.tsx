@@ -4,6 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { estimateOneRepMax, totalVolume } from "@/lib/calculations/oneRepMax";
 import { MUSCLE_GROUP_LABELS } from "@/lib/constants/muscleGroups";
 import { ExerciseProgressChart, type ProgressPoint } from "@/components/charts/ExerciseProgressChart";
+import { ExerciseThumbnail } from "@/components/ExerciseThumbnail";
 
 export default async function ExerciseDetailPage({
   params,
@@ -43,12 +44,15 @@ export default async function ExerciseDetailPage({
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-semibold">{exercise.name}</h1>
-        <p className="text-muted-foreground text-sm">
-          {MUSCLE_GROUP_LABELS[exercise.primaryMuscle]}
-          {exercise.equipment ? ` · ${exercise.equipment}` : ""}
-        </p>
+      <div className="flex items-center gap-3">
+        <ExerciseThumbnail imageUrl={exercise.imageUrl} name={exercise.name} size={56} />
+        <div>
+          <h1 className="text-2xl font-semibold">{exercise.name}</h1>
+          <p className="text-muted-foreground text-sm">
+            {MUSCLE_GROUP_LABELS[exercise.primaryMuscle]}
+            {exercise.equipment ? ` · ${exercise.equipment}` : ""}
+          </p>
+        </div>
       </div>
 
       {data.length === 0 ? (

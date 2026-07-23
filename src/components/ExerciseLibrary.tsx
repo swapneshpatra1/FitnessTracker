@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { AddExerciseForm } from "@/components/forms/AddExerciseForm";
+import { ExerciseThumbnail } from "@/components/ExerciseThumbnail";
 import { MUSCLE_GROUP_LABELS } from "@/lib/constants/muscleGroups";
 import type { MuscleGroup } from "@/generated/prisma/client";
 
@@ -16,6 +17,7 @@ export type ExerciseListItem = {
   primaryMuscle: MuscleGroup;
   equipment: string | null;
   isCustom: boolean;
+  imageUrl: string | null;
 };
 
 export function ExerciseLibrary({ exercises }: { exercises: ExerciseListItem[] }) {
@@ -79,10 +81,13 @@ export function ExerciseLibrary({ exercises }: { exercises: ExerciseListItem[] }
               <Link
                 key={exercise.id}
                 href={`/exercises/${exercise.id}`}
-                className="hover:bg-accent flex items-center justify-between rounded-md border px-3 py-2 text-sm transition-colors"
+                className="hover:bg-accent flex items-center justify-between gap-3 rounded-md border px-3 py-2 text-sm transition-colors"
               >
-                <span>{exercise.name}</span>
-                <div className="flex items-center gap-1">
+                <div className="flex min-w-0 items-center gap-3">
+                  <ExerciseThumbnail imageUrl={exercise.imageUrl} name={exercise.name} size={36} />
+                  <span className="truncate">{exercise.name}</span>
+                </div>
+                <div className="flex shrink-0 items-center gap-1">
                   {exercise.isCustom && (
                     <Badge variant="secondary" className="text-xs">
                       Custom

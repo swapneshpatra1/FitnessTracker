@@ -27,11 +27,12 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { ExerciseSetRow } from "@/components/forms/ExerciseSetRow";
 import { AddExerciseForm } from "@/components/forms/AddExerciseForm";
 import { WorkoutLoggedAnimation } from "@/components/WorkoutLoggedAnimation";
+import { ExerciseThumbnail } from "@/components/ExerciseThumbnail";
 
 const LOGGED_ANIMATION_DURATION_MS = 1900;
 
-type ExerciseOption = { id: string; name: string };
-type ComboboxOption = { value: string; label: string };
+type ExerciseOption = { id: string; name: string; imageUrl?: string | null };
+type ComboboxOption = { value: string; label: string; imageUrl?: string | null };
 
 function describeValidationError(errors: FieldErrors<WorkoutSessionInput>): string {
   const exerciseErrors = errors.exercises;
@@ -77,7 +78,7 @@ export function WorkoutLogForm({
   const [newExerciseRowIndex, setNewExerciseRowIndex] = useState<number | null>(null);
   const [showLoggedAnimation, setShowLoggedAnimation] = useState(false);
   const exerciseComboboxItems: ComboboxOption[] = useMemo(
-    () => exerciseList.map((option) => ({ value: option.id, label: option.name })),
+    () => exerciseList.map((option) => ({ value: option.id, label: option.name, imageUrl: option.imageUrl })),
     [exerciseList]
   );
   const methods = useForm<WorkoutSessionInput, unknown, WorkoutSessionOutput>({
@@ -210,6 +211,7 @@ export function WorkoutLogForm({
                       <ComboboxList>
                         {(item: ComboboxOption) => (
                           <ComboboxItem key={item.value} value={item}>
+                            <ExerciseThumbnail imageUrl={item.imageUrl} name={item.label} size={28} />
                             {item.label}
                           </ComboboxItem>
                         )}

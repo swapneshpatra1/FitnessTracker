@@ -4,7 +4,7 @@ import { WorkoutLogForm } from "@/components/forms/WorkoutLogForm";
 export default async function LogWorkoutPage() {
   const exercises = await prisma.exercise.findMany({
     orderBy: { name: "asc" },
-    select: { id: true, name: true },
+    select: { id: true, name: true, imageUrl: true },
   });
 
   return (

@@ -153,6 +153,7 @@ model Exercise {
   secondaryMuscles MuscleGroup[]
   equipment        String?
   instructions     String?       @db.Text
+  imageUrl         String?
 
   isCustom    Boolean @default(false)
   createdById String? // null = global/seeded exercise

@@ -4,7 +4,7 @@ import { ExerciseLibrary } from "@/components/ExerciseLibrary";
 export default async function ExercisesPage() {
   const exercises = await prisma.exercise.findMany({
     orderBy: { name: "asc" },
-    select: { id: true, name: true, primaryMuscle: true, equipment: true, isCustom: true },
+    select: { id: true, name: true, primaryMuscle: true, equipment: true, isCustom: true, imageUrl: true },
   });
 
   return (
