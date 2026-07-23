@@ -13,7 +13,7 @@ export const profileSchema = z.object({
   heightCm: optionalNumber(50, 272),
   weightKg: optionalNumber(20, 400),
   goal: z
-    .enum(["STRENGTH", "HYPERTROPHY", "ENDURANCE", "WEIGHT_LOSS", "GENERAL_FITNESS", "MAINTENANCE"])
+    .enum(["LOSE_WEIGHT", "BUILD_MUSCLE", "IMPROVE_ENDURANCE", "GENERAL_FITNESS", "ATHLETIC_PERFORMANCE", "OTHER"])
     .optional(),
   preferredUnit: z.enum(["KG", "LB"]).default("KG"),
   weeklyWorkoutGoal: z.number().int().min(1).max(14).default(4),

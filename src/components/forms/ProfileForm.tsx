@@ -29,12 +29,12 @@ const GENDER_LABELS: Record<string, string> = {
 };
 
 const GOAL_LABELS: Record<string, string> = {
-  STRENGTH: "Strength",
-  HYPERTROPHY: "Hypertrophy",
-  ENDURANCE: "Endurance",
-  WEIGHT_LOSS: "Weight loss",
+  LOSE_WEIGHT: "Lose weight",
+  BUILD_MUSCLE: "Build muscle",
+  IMPROVE_ENDURANCE: "Improve endurance",
   GENERAL_FITNESS: "General fitness",
-  MAINTENANCE: "Maintenance",
+  ATHLETIC_PERFORMANCE: "Athletic performance",
+  OTHER: "Other",
 };
 
 const UNIT_LABELS: Record<string, string> = {
@@ -136,12 +136,12 @@ export function ProfileForm({ mode, defaultValues }: ProfileFormProps) {
               <SelectValue placeholder="Select" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="STRENGTH">Strength</SelectItem>
-              <SelectItem value="HYPERTROPHY">Hypertrophy</SelectItem>
-              <SelectItem value="ENDURANCE">Endurance</SelectItem>
-              <SelectItem value="WEIGHT_LOSS">Weight loss</SelectItem>
+              <SelectItem value="LOSE_WEIGHT">Lose weight</SelectItem>
+              <SelectItem value="BUILD_MUSCLE">Build muscle</SelectItem>
+              <SelectItem value="IMPROVE_ENDURANCE">Improve endurance</SelectItem>
               <SelectItem value="GENERAL_FITNESS">General fitness</SelectItem>
-              <SelectItem value="MAINTENANCE">Maintenance</SelectItem>
+              <SelectItem value="ATHLETIC_PERFORMANCE">Athletic performance</SelectItem>
+              <SelectItem value="OTHER">Other</SelectItem>
             </SelectContent>
           </Select>
         </div>
