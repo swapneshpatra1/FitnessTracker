@@ -6,5 +6,9 @@ export default async function AppLayout({ children }: { children: React.ReactNod
   await requireProfile();
   const session = await auth();
 
-  return <AppShell userName={session?.user?.name}>{children}</AppShell>;
+  return (
+    <AppShell userName={session?.user?.name} userEmail={session?.user?.email} userImage={session?.user?.image}>
+      {children}
+    </AppShell>
+  );
 }
